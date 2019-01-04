@@ -1,4 +1,5 @@
 require 'selenium-webdriver'
+#INFO: '#UTILS:' mark -- candidate for architectural OOP refactoring
 
 #Class to store Freelancer's profile
 class Freelancer
@@ -46,7 +47,6 @@ end #Freelancer
 
 @driver = nil
 # Taking parameters from command line:
-@browser = nil
 #!NOTE: Keyword should be a single word!
 @keyword = nil
 #Data Structure to store found Freelancer's:
@@ -55,18 +55,14 @@ end #Freelancer
 
 def testBegin
   puts "\nNOTE THAT: It's a search-engine test. NO validation. Quality of entered parameters are on YOUR side."
-  if ARGV.length > 0
-    @keyword = ARGV[0]
-    puts "Search Keyword parameter: #{@keyword}"
-  else
+  if ARGV.length < 1
     puts "1st parameter required: Search Keyword (single word) should be passed!"
     puts "2nd parameter NOT required: Browser vendor 'chrome' or 'firefox' (by default)."
     exit(1)
   end
-  if ARGV.length > 1
-    @browser = ARGV[1]
-    puts "Browser parameter: #{@browser}"
-  else
+  @keyword = ARGV[0]
+  puts "Search Keyword parameter: #{@keyword}"
+  unless ARGV.length > 1
     puts "Browser parameter: can be set on 'chrome' or 'firefox'(by default)"
   end
 end
@@ -74,58 +70,53 @@ end
 # Test case: 1.  Run <browser>
 def testCase_1
   @driver = Selenium::WebDriver
+  vendor = ARGV[1].to_s
   puts "\nTest case: 1.  Run <browser>"
-  if @browser.eql?('chrome')
+  puts "Browser parameter: #{vendor}"
+  #TODO: code duplication --- do something with it
+  if 'chrome'.eql?(vendor)
     @driver = @driver.for :chrome
-    puts 'INFO: Chrome browser was run'
+    puts "INFO: #{@driver.browser.to_s.capitalize} browser was run"
+    puts "#{@driver.browser.to_s.eql?('chrome') ? 'Passed':'Failed'}"
   else
     @driver = @driver.for :firefox
-    puts 'INFO: Firefox browser was run (by default)'
+    puts "INFO: #{@driver.browser.to_s.capitalize} browser was run (by default)"
+    puts "#{@driver.browser.to_s.eql?('firefox') ? 'Passed':'Failed'}"
   end
-  puts 'Passed'
 end
 
 # Test case: 2.  Clear <browser> cookies
 def testCase_2
-  puts "\nTest case: 2.  Clear <browser> cookies"
-  @driver.manage.delete_all_cookies
-  puts 'Passed'
-  # TODO: put driver's vendor in notification.
+  puts "\nTest case: 2.  Clear <#{@driver.browser}> cookies"
+  puts "#{@driver.manage.delete_all_cookies==nil ? 'Passed':'Failed'}"
 end
 
 # Test case: 3.  Go to www.upwork.com
 def testCase_3
-  puts "\nTest case: 3.  Go to 'www.upwork.com'"
-  @driver.navigate.to("https://www.upwork.com")
-  puts 'Passed'
+  site = 'https://www.upwork.com'
+  puts "\nTest case: 3.  Go to '#{site}'\n#{@driver.navigate.to(site)==nil ? 'Passed':'Failed'}"
 end
 
+#UTILS: can be moved to the independent UTILS module -- as possibly reusable code
 # Test case: 4.  Focus onto "Find freelancers"
 def testCase_4
-  # !WARN: simply puts text into input-element.
   puts "\nTest case: 4.  Focus onto 'Find freelancers'"
-  @itemSearch = @driver.find_elements(:class, 'form-control')[2]
-  if (@itemSearch)
-    puts "Find element with value: #{@itemSearch}"
-    @itemSearch.click
-    sleep 2
-    puts 'Passed'
-  else
-    puts "Didn't find element! #{@itemSearch}"
-    puts 'Failed'
-  end
-  #TODO:(BUG) Insure that search set in "Find Freelancer" search-mode!
-  # !WARN: NOT ready yet! Input-element should be surely set to "Find Freelancer" search-mode!
+  #!NOTE: elements' detection should be more flexible! (..[2].click -- array-index stub value.)
+  @driver.find_elements(:class, 'dropdown-toggle')[2].click # Search drop-down was clicked
+  search_elem = @driver.find_elements(:xpath, "//li[@data-label='Freelancers']")[2]
+  puts "'Find #{search_elem.text}' search-mode was set: #{search_elem.click==nil ?'Passed':'Failed'}"
+  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
+#UTILS: can be moved to the independent UTILS module -- as possibly reusable code
 # Test case: 5.  Enter <keyword> into the search input right from the drop-down and submit it
 def testCase_5
   # (click on the magnifying glass button)
   puts "\nTest case: 5.  Enter '#{@keyword}' into the search input right from the drop-down and submit it"
-  @driver.execute_script("arguments[0].setAttribute('value', '#{@keyword}');", @itemSearch)
-  @driver.find_elements(:class, 'p-0-left-right')[3].click
-  puts 'Passed'
-  # NOTE: Provide more loyal element fetching.
+  @driver.switch_to.active_element.send_keys(@keyword)  #pass <keyword> into focused element
+  glass_button = @driver.find_elements(:class, 'p-0-left-right')[3]
+  puts "Magnifying glass button was clicked: #{glass_button.click==nil ? 'Passed':'Failed'}"
+  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 6.  Parse the 1st page with search results:
@@ -166,6 +157,7 @@ def testCase_7
   }
   #testShutdown  #DEBUG: exit BUT without quit WebDriver.
 end
+
 # Build Freelancer object and grab data for it. (Builder and Grabber)
 # Return: Freelancer instance
 #TODO: belongs to Freelancer class - object creation
@@ -199,6 +191,7 @@ def testCase_8
   # @FreelancerName = @titleLink.text # After click @titleLink will be un-accessible
   puts "Clicking on #{@FcSearchResult[@randIndex].getFcName} title: #{title_link.click}"
   puts 'Passed'
+  #TODO: Investigate if we can check here by another page have loaded check OR browser URL-field have been changed value
   #testShutdown  #DEBUG: exit BUT without quit WebDriver.
 end
 
@@ -208,6 +201,7 @@ def testCase_9
   puts "Browser title: #{@driver.title}"
   fc_name = @FcSearchResult[@randIndex].getFcName
   puts "Freelancer name: #{fc_name}"
+  #TODO: Investigate maybe we can check here by base_url value of each freelancer in search-results
   puts "#{@driver.title.include?(fc_name)?'Passed':'Failed'}"
   #TODO: !WARNING: Too simple implementation of checking.
   #testShutdown  #DEBUG: exit BUT without quit WebDriver.
@@ -217,6 +211,7 @@ end
 def testCase_10
   #TODO: move it to OOP approach.
   #TODO:#BUG Has problem with fetch data from companies profiles.
+  #TODO:#BUG: Failed on - Freelancer Name:  MobiDev (keyword='javascript') --- it is company
   puts "\nTest case: 10. Check that each attribute value is equal to one of those stored in the structure created in TC6-7"
   puts "1) Freelancer Name:\n#{@FcSearchResult[@randIndex].getFcName}"
   @feJobTitleElem = @driver.find_elements(:class, 'fe-job-title')
@@ -225,6 +220,8 @@ def testCase_10
   else  # It's a company:
     @feJobTitleElem = @driver.find_elements(:tag_name, 'h3')[2]
   end
+  #TODO:#BUG: undefined method `text' for nil:NilClass (NoMethodError) -- happens here (Freelancer Name:  Xavier P.)
+  #TODO:#BUG: same problem happens here -- "Please verify you are a human" page
   puts "2) Freelancer's Job Title:\n#{@feJobTitleElem.text}"
   # !NOTE: Need more reliable element fetch, with multi class names!
   @feProfileOverview = @driver.find_element(:class, 'text-pre-line').text
@@ -241,6 +238,7 @@ end
 
 # Test case: 11. Check whether at least one attribute contains <keyword>
 def testCase_11
+  #TODO:#BUG: Failed on - Freelancer Name:  MobiDev (keyword='javascript')
   #TODO: move it to OOP approach.
   puts "\nTest case: 11. Check whether at least one attribute contains '#{@keyword}'"
   boolean_tc11 = false
@@ -283,16 +281,16 @@ def testShutdown
 end
 
 # Main test-scenario:
-testBegin   #Status: works - simple impl
-testCase_1  #Status: works - simple impl
-testCase_2  #Status: works - simple impl
-testCase_3  #Status: works - simple impl
-testCase_4  #Status: works - simple impl
-testCase_5  #Status: works - simple impl
+testBegin   #Status: Refactored
+testCase_1  #Status: Refactored
+testCase_2  #Status: Full Implementation - Done!
+testCase_3  #Status: Full Implementation - Done!
+testCase_4  #Status: Full Implementation - Done!
+testCase_5  #Status: Full Implementation - Done!
 testCase_6  #Status: Full Implementation - Done!
 testCase_7  #Status: Full Implementation - Done! (fixed: case insensitive check)
-testCase_8  #Status: works, Refactoring in progress...
-testCase_9  #Status: works, made simple refactoring
-testCase_10 #Status: works - simple impl (Need refactoring)
-testCase_11 #Status: works - simple impl (Need refactoring)
+testCase_8  #Status: works, Refactoring - 80% in progress...
+testCase_9  #Status: works, Refactoring - 30% in progress...
+testCase_10 #Status: works - simple impl (Need refactoring) - bugs
+testCase_11 #Status: works - simple impl (Need refactoring) - bugs
 testEnd

@@ -6,6 +6,23 @@ element = document.getElementsByClassName('form-control')[2]
 
 # document.activeElement.className
 
+#-----------------------------------TC06-----------------------------------------
+# TC5: JS code to find - search glass button:
+document.getElementsByClassName('btn p-xs-left-right dropdown-toggle')
+document.getElementsByClassName('dropdown-toggle')[2].click
+
+# JS: Find 'Freelancers' menuItem link:
+document.evaluate("//a[text()='Freelancers']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+document.evaluate("/html/body/div[1]/div[2]/div/nav/div/div[2]/div[1]/form/div[3]/div/ul/li[1]/a",
+        document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+xpath = "//a[contains(text(),'Freelancers')]"
+document.evaluate("//li[@class='active' and @data-label='Freelancers']", document,
+        null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText
+# super XPath search of hidden menuItems
+document.evaluate("//li[@data-label='Freelancers' and @data-ng-click='searchCtrl.select(option)']", document, null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText
+#--------------------------------------------------------------------------------
+
 # TC5: JS code to find - search glass button:
 document.getElementsByClassName('p-0-left-right')[3]
 
