@@ -1,0 +1,84 @@
+# Find Freelancer input element:
+# JS code to find - id="search-dropdown" class="dropdown-menu"
+document.getElementsByClassName('dropdown-menu')[3]
+# JS code to find - search input field:
+element = document.getElementsByClassName('form-control')[2]
+
+# document.activeElement.className
+
+# TC5: JS code to find - search glass button:
+document.getElementsByClassName('p-0-left-right')[3]
+
+#-----------------------------------TC06-----------------------------------------
+# TC6: JS code -- get Freelancer's HTMLCollection:
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')
+#--------------------------------------------------------------------------------
+
+#-----------------------------------TC08-----------------------------------------
+# TC8: JS code -- get Freelancers' data (InnerText)
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0].innerText
+# something else
+document.getElementsByClassName('m-0-top-bottom ellipsis')
+#--------------------------------------------------------------------------------
+# Get Title of Freelancer (H4 first -- than link inside it )
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0]
+.getElementsByClassName('display-inline-block')[0]
+.getElementsByClassName('freelancer-tile-name')
+
+#-----------------------------------TC07-----------------------------------------
+# Collection of found Freelancers:
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')
+
+# Name of Freelancer:
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0]
+.getElementsByClassName('display-inline-block')[0]
+.getElementsByClassName('freelancer-tile-name')[0].title
+
+# Title of Freelancer:
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0]
+.getElementsByClassName('freelancer-tile-title')[0].innerText
+
+# Description of Freelancer (Overview):
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0]
+.getElementsByClassName('d-none d-lg-block')[3]
+.getElementsByClassName('p-0-left m-0 freelancer-tile-description')
+$ better approach:
+...getElementsByClassName('freelancer-tile-description')[0].innerText - short description
+...getElementsByClassName('freelancer-tile-description')[1].innerText - full (before more) description
+
+# Skills of Freelancer:
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0]
+.getElementsByClassName('o-tag-skill')
+#--------------------------------------------------------------------------------
+
+#-----------------------------------TC10-----------------------------------------
+# TC10: Fetch data from profile:
+# <div class="media-body"> --- header of freelancer's profile
+
+# description title: (need XPath for both class names)
+document.getElementsByClassName("up-active-context up-active-context-title fe-job-title inline-block m-lg-right")
+document.getElementsByClassName("up-active-context up-active-context-title fe-job-title inline-block m-lg-right")[0].innerText
+document.getElementsByClassName("up-active-context-title fe-job-title")[0].innerText
+document.getElementsByClassName("fe-job-title")[0].innerText
+# description for companies:
+document.getElementsByClassName("m-sm-bottom ng-binding ng-scope")[1]
+document.getElementsByTagName('h3')[2]
+
+# <o-profile-overview> tag -- description
+document.getElementsByTagName('o-profile-overview')[0]
+document.getElementsByTagName('o-profile-overview')[0].innerText
+# companies description:
+document.getElementsByClassName("break text-pre-line ng-isolate-scope")[0].innerText
+document.getElementsByClassName("text-pre-line")[0].innerText
+
+# WARN: for freelancer location:
+document.getElementsByClassName("fe-map-trigger")[0].innerText
+# WARN: location for company
+document.getElementsByClassName("m-sm-bottom")[2].innerText
+
+# Fe-skills:
+document.getElementsByTagName('up-skills-public-viewer')
+# Freelancer's Collection of Skills:
+document.getElementsByClassName('o-tag-skill ng-binding ng-scope')
+document.getElementsByClassName('o-tag-skill')[4].innerText
+#--------------------------------------------------------------------------------

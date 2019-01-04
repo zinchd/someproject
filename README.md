@@ -1,2 +1,0 @@
-# someproject
-some testing project
