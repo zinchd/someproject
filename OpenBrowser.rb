@@ -127,7 +127,7 @@ def testCase_6
   fc_collection = @driver.find_elements(:class, 'air-card-hover')
   if fc_collection.length > 0
     fc_collection.each_with_index {|value, index|
-      @FcSearchResult[index] = anotherDataGrabber(value)
+      @FcSearchResult[index] = createFreelancerObj(value)
       puts "#{index+1}.\telement - Saved"
       #p @FcSearchResult[index] #DEBUG: STDOUT - whole data
     }
@@ -163,7 +163,7 @@ end
 #TODO: belongs to Freelancer class - object creation
 #TODO: BUT data-grabbing should be out of Freelancer class.
 #TODO: Implement fetching data check - puts "Object id #{!not_nil_access.nil?}"
-def anotherDataGrabber (value)
+def createFreelancerObj (value)
   freelancer = Freelancer.new
   freelancer.setFcName(
       value.find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name').text)
