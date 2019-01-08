@@ -49,9 +49,28 @@ end #Freelancer
 # Taking parameters from command line:
 #!NOTE: Keyword should be a single word!
 @keyword = nil
-#Data Structure to store found Freelancer's:
+#--------------------------------------------------
+#Data Structure to store found Freelancer's (Freelancer's search result):
 @FcSearchResult = Array.new
-@randIndex = 0
+
+#Incupsulating RandomIndex for @FcSearchResult usage only
+@randomIndex = nil
+#GETTER for RandomIndex (public function)
+def getRandomIndex
+  #NOTE: RandomIndex initialization is strongly depends of Freelancer's search result array!
+  #puts "FcSearchResult Length: #{@FcSearchResult.length}" #DEBUG
+  if @FcSearchResult.length > 0 then
+    if @randomIndex.nil?  # should be initialized only once!
+      @randomIndex = rand(@FcSearchResult.length)
+      #puts "DEBUG: RandomIndex singleton has been made! Value = #{@randomIndex}" #DEBUG
+    end
+    #puts "DEBUG: Returns RandomIndex! Value = #{@randomIndex}" #DEBUG
+    return @randomIndex
+  end
+  puts "ERROR: FcSearchResult is not populated yet! Can't calculate RandomIndex on this moment!" #DEBUG
+  return @randomIndex
+end
+#--------------------------------------------------
 
 def testBegin
   puts "\nNOTE THAT: It's a search-engine test. NO validation. Quality of entered parameters are on YOUR side."
@@ -126,6 +145,8 @@ def testCase_6
   puts "\nTest case: 6.  Parse the 1st page with search results:"
   fc_collection = @driver.find_elements(:class, 'air-card-hover')
   if fc_collection.length > 0
+    #TODO: Population of FcSearchResult should be encapsulated!
+    #Populate FcSearchResult array with Freelancer's objects:
     fc_collection.each_with_index {|value, index|
       @FcSearchResult[index] = createFreelancerObj(value)
       puts "#{index+1}.\telement - Saved"
@@ -180,16 +201,13 @@ end
 
 # Test case: 8.  Click on random freelancer's title
 def testCase_8
-  #TODO: encapsulate the @randIndex inside Freelancer class.
   puts "\nTest case: 8.  Click on random freelancer's title"
-  @randIndex = rand(@FcSearchResult.length)
   # NOTE: If was clicked on Freelancers' TITLE - his name appears in browser title
   # Find freelancer's header -> then a freelancer's title-link inside and click on it:
-  title_link = @driver.find_elements(:class, 'air-card-hover')[@randIndex]
+  title_link = @driver.find_elements(:class, 'air-card-hover')[getRandomIndex]
                    .find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
   # NOTE: If was clicked on section --- search result title on the browser title will display.
-  # @FreelancerName = @titleLink.text # After click @titleLink will be un-accessible
-  puts "Clicking on #{@FcSearchResult[@randIndex].getFcName} title: #{title_link.click}"
+  puts "Clicking on #{@FcSearchResult[getRandomIndex].getFcName} title: #{title_link.click}"
   puts 'Passed'
   #TODO: Investigate if we can check here by another page have loaded check OR browser URL-field have been changed value
   #testShutdown  #DEBUG: exit BUT without quit WebDriver.
@@ -199,7 +217,7 @@ end
 def testCase_9
   puts "\nTest case: 9.  Get into that freelancer's profile"
   puts "Browser title: #{@driver.title}"
-  fc_name = @FcSearchResult[@randIndex].getFcName
+  fc_name = @FcSearchResult[getRandomIndex].getFcName
   puts "Freelancer name: #{fc_name}"
   #TODO: Investigate maybe we can check here by base_url value of each freelancer in search-results
   puts "#{@driver.title.include?(fc_name)?'Passed':'Failed'}"
@@ -213,7 +231,7 @@ def testCase_10
   #TODO:#BUG Has problem with fetch data from companies profiles.
   #TODO:#BUG: Failed on - Freelancer Name:  MobiDev (keyword='javascript') --- it is company
   puts "\nTest case: 10. Check that each attribute value is equal to one of those stored in the structure created in TC6-7"
-  puts "1) Freelancer Name:\n#{@FcSearchResult[@randIndex].getFcName}"
+  puts "1) Freelancer Name:\n#{@FcSearchResult[getRandomIndex].getFcName}"
   @feJobTitleElem = @driver.find_elements(:class, 'fe-job-title')
   if @feJobTitleElem.length > 0 then
     @feJobTitleElem = @feJobTitleElem[0]
@@ -242,7 +260,7 @@ def testCase_11
   #TODO: move it to OOP approach.
   puts "\nTest case: 11. Check whether at least one attribute contains '#{@keyword}'"
   boolean_tc11 = false
-  fc_name = @FcSearchResult[@randIndex].getFcName
+  fc_name = @FcSearchResult[getRandomIndex].getFcName
   if fc_name.downcase.include?(@keyword.downcase)
     puts "Case: '#{@keyword}' contains in Freelancer's Name (#{fc_name})!"
     boolean_tc11 = true
@@ -289,8 +307,8 @@ testCase_4  #Status: Full Implementation - Done!
 testCase_5  #Status: Full Implementation - Done!
 testCase_6  #Status: Full Implementation - Done!
 testCase_7  #Status: Full Implementation - Done! (fixed: case insensitive check)
-testCase_8  #Status: works, Refactoring - 80% in progress...
-testCase_9  #Status: works, Refactoring - 30% in progress...
+testCase_8  #Status: works, Refactoring - 90% in progress...
+testCase_9  #Status: works, Refactoring - 40% in progress...
 testCase_10 #Status: works - simple impl (Need refactoring) - bugs
 testCase_11 #Status: works - simple impl (Need refactoring) - bugs
 testEnd
