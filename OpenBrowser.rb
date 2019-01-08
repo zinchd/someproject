@@ -155,7 +155,7 @@ def testCase_6
     puts "All #{@FcSearchResult.length} elements are saved.\nPassed"
   else
     puts "No result with '#{@keyword}'! Try with another search keyword!\nFailed"
-    testShutdown
+    testShutdown(1)
   end
   #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
@@ -176,7 +176,7 @@ def testCase_7
     puts "General data contains: #{freelancer.getGeneralData.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
     #p freelancer #DEBUG: stdout
   }
-  #testShutdown  #DEBUG: exit BUT without quit WebDriver.
+  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Build Freelancer object and grab data for it. (Builder and Grabber)
@@ -207,7 +207,7 @@ def testCase_8
                    .find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
   # NOTE: If was clicked on section --- search result title will be displayed on the browser title.
   puts "Clicked on '#{@FcSearchResult[getRandomIndex].getFcName}' title: #{title_link.click.nil? ? 'Passed':'Failed'}"
-  #testShutdown  #DEBUG: exit BUT without quit WebDriver.
+  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 9.  Get into that freelancer's profile
@@ -218,8 +218,7 @@ def testCase_9
   puts "Freelancer name: #{fc_name}"
   #TODO: Investigate maybe we can check here by base_url value of each freelancer in search-results
   puts "#{@driver.title.include?(fc_name)?'Passed':'Failed'}"
-  #TODO: !WARNING: Too simple implementation of checking.
-  #testShutdown  #DEBUG: exit BUT without quit WebDriver.
+  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 10. Check that each attribute value is equal to one of those stored in the structure created in #67
@@ -236,7 +235,7 @@ def testCase_10
     @feJobTitleElem = @driver.find_elements(:tag_name, 'h3')[2]
   end
   #TODO:#BUG: undefined method `text' for nil:NilClass (NoMethodError) -- happens here (Freelancer Name:  Xavier P.)
-  #TODO:#BUG: same problem happens here -- "Please verify you are a human" page
+  #TODO:#BUG: same problem happens here -- "Please verify you are a human" page - undefined method `text' for nil:NilClass (NoMethodError)
   puts "2) Freelancer's Job Title:\n#{@feJobTitleElem.text}"
   # !NOTE: Need more reliable element fetch, with multi class names!
   @feProfileOverview = @driver.find_element(:class, 'text-pre-line').text
@@ -248,7 +247,7 @@ def testCase_10
   #TODO: Button 'more' hides a lot of info!
   puts "#{@driver.title.downcase.include?(@feJobTitleElem.text.downcase) ? 'Passed' : 'Failed'}"
   #TODO: fe (e.i. freelancer) -- should be an object
-  #testShutdown  #DEBUG: exit BUT without quit WebDriver.
+  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 11. Check whether at least one attribute contains <keyword>
@@ -283,16 +282,14 @@ end
 # End of the test.
 def testEnd
   puts "\nTest was successfully passed!"
-  @driver.quit
-  puts "\nWebDriver was shutdown!"
-  exit(0)
+  testShutdown(0)
 end
 
-# Shutdown test with '1' status, end quit browser. (interrupts test)
-def testShutdown
+# Shutdown test with specified status, end quit browser. (gentle shutdown)
+def testShutdown(status)
   @driver.quit
-  puts "\nTest was shutdown!"
-  exit(1)
+  puts "\nWebDriver was shutdown!"
+  exit(status)
 end
 
 # Main test-scenario:
@@ -305,7 +302,7 @@ testCase_5  #Status: Full Implementation - Done!
 testCase_6  #Status: Full Implementation - Done!
 testCase_7  #Status: Full Implementation - Done! (fixed: case insensitive check)
 testCase_8  #Status: Full Implementation - Done!
-testCase_9  #Status: works, Refactoring - 40% in progress...
+testCase_9  #Status: Refactored
 testCase_10 #Status: works - simple impl (Need refactoring) - bugs
 testCase_11 #Status: works - simple impl (Need refactoring) - bugs
-testEnd
+testEnd     #Status: Refactored
