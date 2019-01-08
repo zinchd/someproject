@@ -203,13 +203,10 @@ end
 def testCase_8
   puts "\nTest case: 8.  Click on random freelancer's title"
   # NOTE: If was clicked on Freelancers' TITLE - his name appears in browser title
-  # Find freelancer's header -> then a freelancer's title-link inside and click on it:
   title_link = @driver.find_elements(:class, 'air-card-hover')[getRandomIndex]
                    .find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
-  # NOTE: If was clicked on section --- search result title on the browser title will display.
-  puts "Clicking on #{@FcSearchResult[getRandomIndex].getFcName} title: #{title_link.click}"
-  puts 'Passed'
-  #TODO: Investigate if we can check here by another page have loaded check OR browser URL-field have been changed value
+  # NOTE: If was clicked on section --- search result title will be displayed on the browser title.
+  puts "Clicked on '#{@FcSearchResult[getRandomIndex].getFcName}' title: #{title_link.click.nil? ? 'Passed':'Failed'}"
   #testShutdown  #DEBUG: exit BUT without quit WebDriver.
 end
 
@@ -307,7 +304,7 @@ testCase_4  #Status: Full Implementation - Done!
 testCase_5  #Status: Full Implementation - Done!
 testCase_6  #Status: Full Implementation - Done!
 testCase_7  #Status: Full Implementation - Done! (fixed: case insensitive check)
-testCase_8  #Status: works, Refactoring - 90% in progress...
+testCase_8  #Status: Full Implementation - Done!
 testCase_9  #Status: works, Refactoring - 40% in progress...
 testCase_10 #Status: works - simple impl (Need refactoring) - bugs
 testCase_11 #Status: works - simple impl (Need refactoring) - bugs
