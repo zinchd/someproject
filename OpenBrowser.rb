@@ -52,6 +52,8 @@ end #Freelancer
 #--------------------------------------------------
 #Data Structure to store found Freelancer's (Freelancer's search result):
 @FcSearchResult = Array.new
+#Freelancer Object
+@FcRandomProfile = nil
 
 #Incupsulating RandomIndex for @FcSearchResult usage only
 @randomIndex = nil
@@ -63,6 +65,8 @@ def getRandomIndex
     if @randomIndex.nil?  # should be initialized only once!
       @randomIndex = rand(@FcSearchResult.length)
       #puts "DEBUG: RandomIndex singleton has been made! Value = #{@randomIndex}" #DEBUG
+      # Set DEFAULT value for Random Freelancer profile object:
+      @FcRandomProfile = @FcSearchResult[@randomIndex]
     end
     #puts "DEBUG: Returns RandomIndex! Value = #{@randomIndex}" #DEBUG
     return @randomIndex
@@ -149,7 +153,7 @@ def testCase_6
     #Populate FcSearchResult array with Freelancer's objects:
     fc_collection.each_with_index {|value, index|
       @FcSearchResult[index] = createFreelancerObj(value)
-      puts "#{index+1}.\telement - Saved"
+      #puts "#{index+1}.\telement - Saved" #DEBUG
       #p @FcSearchResult[index] #DEBUG: STDOUT - whole data
     }
     puts "All #{@FcSearchResult.length} elements are saved.\nPassed"
@@ -157,7 +161,7 @@ def testCase_6
     puts "No result with '#{@keyword}'! Try with another search keyword!\nFailed"
     testShutdown(1)
   end
-  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
+  #testShutdown(2)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 7.  Make sure at least one attribute (title, overview, skills, etc) of each item
@@ -203,22 +207,23 @@ end
 def testCase_8
   puts "\nTest case: 8.  Click on random freelancer's title"
   # NOTE: If was clicked on Freelancers' TITLE - his name appears in browser title
+  puts "RandomIndex: #{getRandomIndex+1}"  #DEBUG:
   title_link = @driver.find_elements(:class, 'air-card-hover')[getRandomIndex]
                    .find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
   # NOTE: If was clicked on section --- search result title will be displayed on the browser title.
   puts "Clicked on '#{@FcSearchResult[getRandomIndex].getFcName}' title: #{title_link.click.nil? ? 'Passed':'Failed'}"
-  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
+  #testShutdown(1)  #DEBUG: gentle exit with WebDriver quit.
 end
 
 # Test case: 9.  Get into that freelancer's profile
 def testCase_9
   puts "\nTest case: 9.  Get into that freelancer's profile"
-  puts "Browser title: #{@driver.title}"
+  puts "Browser title: #{@driver.title}"  #DEBUG
   fc_name = @FcSearchResult[getRandomIndex].getFcName
-  puts "Freelancer name: #{fc_name}"
+  puts "Freelancer name: #{fc_name}"  #DEBUG
   #TODO: Investigate maybe we can check here by base_url value of each freelancer in search-results
-  puts "#{@driver.title.include?(fc_name)?'Passed':'Failed'}"
-  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
+  puts "#{@driver.title.include?(fc_name) ? 'Passed' : 'Failed'}"
+  #testShutdown(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 10. Check that each attribute value is equal to one of those stored in the structure created in #67
@@ -227,27 +232,59 @@ def testCase_10
   #TODO:#BUG Has problem with fetch data from companies profiles.
   #TODO:#BUG: Failed on - Freelancer Name:  MobiDev (keyword='javascript') --- it is company
   puts "\nTest case: 10. Check that each attribute value is equal to one of those stored in the structure created in TC6-7"
-  puts "1) Freelancer Name:\n#{@FcSearchResult[getRandomIndex].getFcName}"
-  @feJobTitleElem = @driver.find_elements(:class, 'fe-job-title')
-  if @feJobTitleElem.length > 0 then
-    @feJobTitleElem = @feJobTitleElem[0]
-  else  # It's a company:
-    @feJobTitleElem = @driver.find_elements(:tag_name, 'h3')[2]
-  end
+
+  # Parsing DATA: Freelancer's profile
   #TODO:#BUG: undefined method `text' for nil:NilClass (NoMethodError) -- happens here (Freelancer Name:  Xavier P.)
+  fc_name = @driver.find_elements(:class, 'media-body')
+  if fc_name.length < 2
+    fc_name = "<no data>"
+  else
+    fc_name = fc_name[1].text
+  end
+  #p fc_name #DEBUG
   #TODO:#BUG: same problem happens here -- "Please verify you are a human" page - undefined method `text' for nil:NilClass (NoMethodError)
-  puts "2) Freelancer's Job Title:\n#{@feJobTitleElem.text}"
+  fe_job_title_elem = @driver.find_elements(:class, 'fe-job-title')
+  if fe_job_title_elem.length > 0 then
+    fe_job_title_elem = fe_job_title_elem[0]
+  else  # It's a company:
+    fe_job_title_elem = @driver.find_elements(:tag_name, 'h3')[2]
+  end
+  fe_job_title = fe_job_title_elem.text
   # !NOTE: Need more reliable element fetch, with multi class names!
-  @feProfileOverview = @driver.find_element(:class, 'text-pre-line').text
-  puts "3) Freelancer's Profile Overview:\n#{@feProfileOverview}"
+  fe_profile_overview = @driver.find_element(:class, 'text-pre-line').text
   # Freelancer's Skills:
-  puts "4) Freelancer's Skills:"
-  @FeSkillsArray = @driver.find_elements(:class, 'o-tag-skill')
-  @FeSkillsArray.each { |skill| puts skill.text }
+  fe_skills_array = @driver.find_elements(:class, 'o-tag-skill')
+
+  #Save parsed data:
+  @FcRandomProfile = Freelancer.new
+  @FcRandomProfile.setFcName(fc_name)
+  @FcRandomProfile.setFcTitle(fe_job_title)
+  @FcRandomProfile.setFcOverview(fe_profile_overview)
+  @FcRandomProfile.setFcSkills(fe_skills_array)
+
+  #Standard Output:
+  puts "1) Freelancer's Name:\n#{@FcRandomProfile.getFcName}"
+  puts "2) Freelancer's Job Title:\n#{@FcRandomProfile.getFcTitle}"
   #TODO: Button 'more' hides a lot of info!
-  puts "#{@driver.title.downcase.include?(@feJobTitleElem.text.downcase) ? 'Passed' : 'Failed'}"
-  #TODO: fe (e.i. freelancer) -- should be an object
-  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
+  puts "3) Freelancer's Profile Overview:\n#{@FcRandomProfile.getFcOverview}"
+  puts "4) Freelancer's Skills:\n" + @FcRandomProfile.getFcSkills.map{ |skill| "'#{skill.text}'" }.join(',')
+
+  #Checking:
+  #TODO: Make a proper checking, as defined in task!!!
+  puts "Checking of equality between RandomFreelancer_Profile and RandomFreelancer_FromSearchResult:"
+  puts "1) Freelancer's Name:\t\t"+
+           "#{@FcRandomProfile.getFcName.downcase.include?(@FcSearchResult[getRandomIndex].getFcName.downcase) ? 'Passed':'Failed'}"
+  puts "2) Freelancer's Job Title:\t"+
+           "#{@FcRandomProfile.getFcTitle.downcase.include?(@FcSearchResult[getRandomIndex].getFcTitle.downcase) ? 'Passed' : 'Failed'}"
+  puts "3) Freelancer's Overview:\t"+
+           "#{@FcRandomProfile.getFcOverview.downcase.include?(@FcSearchResult[getRandomIndex].getFcOverview.downcase) ? 'Passed' : 'Failed'}"
+  fc_rand_profile_skills = @FcRandomProfile.getFcSkills.map {|skill| "'#{skill.text}'"}.join(',')
+  fc_rand_sr_skills = @FcSearchResult[getRandomIndex].getFcSkills
+  puts "4) Freelancer's Skills:\t\t"+
+           "#{fc_rand_profile_skills.downcase.include?(fc_rand_sr_skills.downcase) ? 'Passed' : 'Failed'}"
+
+  #testShutdown(1)  #DEBUG: gentle exit with WebDriver quit .
+  #testShutdown(2)  #DEBUG: force exit without WebDriver quit .
 end
 
 # Test case: 11. Check whether at least one attribute contains <keyword>
@@ -256,39 +293,46 @@ def testCase_11
   #TODO: move it to OOP approach.
   puts "\nTest case: 11. Check whether at least one attribute contains '#{@keyword}'"
   boolean_tc11 = false
-  fc_name = @FcSearchResult[getRandomIndex].getFcName
-  if fc_name.downcase.include?(@keyword.downcase)
-    puts "Case: '#{@keyword}' contains in Freelancer's Name (#{fc_name})!"
+
+  if @FcRandomProfile.getFcName.downcase.include?(@keyword.downcase)
+    puts "Case: '#{@keyword}' contains in Freelancer's Name (#{@FcRandomProfile.getFcName})!"
     boolean_tc11 = true
   end
-  if @feJobTitleElem.text.downcase.include?(@keyword.downcase)
-    puts "Case: '#{@keyword}' contains in Freelancer's Job Title (#{@feJobTitleElem.text})!"
+  if @FcRandomProfile.getFcTitle.downcase.include?(@keyword.downcase)
+    puts "Case: '#{@keyword}' contains in Freelancer's Job Title (#{@FcRandomProfile.getFcTitle})!"
     boolean_tc11 = true
   end
-  if @feProfileOverview.downcase.include?(@keyword.downcase)
-    puts "Case: '#{@keyword}' contains in Freelancer's Overview (#{@feProfileOverview})!"
+  if @FcRandomProfile.getFcOverview.downcase.include?(@keyword.downcase)
+    puts "Case: '#{@keyword}' contains in Freelancer's Overview (#{@FcRandomProfile.getFcOverview})!"
     boolean_tc11 = true
   end
-  @FeSkillsArray.each { |skill|
+  @FcRandomProfile.getFcSkills.each { |skill|
     if skill.text.downcase.include?(@keyword.downcase)
       puts "Case: '#{@keyword}' contains in Freelancer's Skills!"
       boolean_tc11 = true
       break
     end
   }
-  puts "#{(boolean_tc11 ? 'Passed' : 'Failed')}"
+  puts boolean_tc11 ? 'Passed' : 'Failed'
 end
 
 # End of the test.
 def testEnd
-  puts "\nTest was successfully passed!"
-  testShutdown(0)
+  puts "\nTest was successfully PASSED!"
+  testShutdown
 end
 
 # Shutdown test with specified status, end quit browser. (gentle shutdown)
-def testShutdown(status)
-  @driver.quit
-  puts "\nWebDriver was shutdown!"
+## status: 0 - success;
+### 1 - (some error) gentle exit with WebDriver quit. #DEBUG
+### 2 - force exit with driver interruption.  #DEBUG
+def testShutdown(status = 0)
+  if status >= 2
+    puts "\nWebDriver was interrupted!"
+  else
+    @driver.quit
+    puts "\nWebDriver was shutdown!"
+  end
   exit(status)
 end
 
@@ -300,9 +344,9 @@ testCase_3  #Status: Full Implementation - Done!
 testCase_4  #Status: Full Implementation - Done!
 testCase_5  #Status: Full Implementation - Done!
 testCase_6  #Status: Full Implementation - Done!
-testCase_7  #Status: Full Implementation - Done! (fixed: case insensitive check)
+testCase_7  #Status: Full Implementation - Done!
 testCase_8  #Status: Full Implementation - Done!
-testCase_9  #Status: Refactored
-testCase_10 #Status: works - simple impl (Need refactoring) - bugs
-testCase_11 #Status: works - simple impl (Need refactoring) - bugs
+testCase_9  #Status: Full Implementation - Done!
+testCase_10 #Status: Rough Implementation - Done[90%]! Refactoring [30%]
+testCase_11 #Status: Rough Implementation - Done[90%]! Refactoring [60%]
 testEnd     #Status: Refactored

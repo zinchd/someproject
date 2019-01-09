@@ -72,6 +72,10 @@ document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-h
 # TC10: Fetch data from profile:
 # <div class="media-body"> --- header of freelancer's profile
 
+# Freelancer's Name:
+document.getElementsByClassName('media-body')[1].innerText
+<div class="media-body">//div[2]/h2/span
+
 # description title: (need XPath for both class names)
 document.getElementsByClassName("up-active-context up-active-context-title fe-job-title inline-block m-lg-right")
 document.getElementsByClassName("up-active-context up-active-context-title fe-job-title inline-block m-lg-right")[0].innerText
