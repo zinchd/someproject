@@ -46,6 +46,7 @@ class Freelancer
   #TODO: Make general output method for Freelancer object. (like obj.toString())
 end #Freelancer
 
+NO_DATA = 'NO_DATA'
 @driver = nil
 # Taking parameters from command line:
 #!NOTE: Keyword should be a single word!
@@ -65,6 +66,7 @@ def getRandomIndex
   if @FcSearchResult.length > 0 then
     if @randomIndex==nil  # should be initialized only once!
       @randomIndex = rand(@FcSearchResult.length)
+      # @randomIndex = 4  #DEBUG: specific index
       #puts "DEBUG: RandomIndex singleton has been made! Value = #{@randomIndex}" #DEBUG
       # Set DEFAULT value for Random Freelancer profile object:
       #@FcRandomProfile = @FcSearchResult[@randomIndex]
@@ -129,7 +131,6 @@ def testCase_4
   @driver.find_elements(:class, 'dropdown-toggle')[2].click # Search drop-down was clicked
   search_elem = @driver.find_elements(:xpath, "//li[@data-label='Freelancers']")[2]
   puts "'Find #{search_elem.text}' search-mode was set: #{search_elem.click==nil ?'Passed':'Failed'}"
-  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 #UTILS: can be moved to the independent UTILS module -- as possibly reusable code
@@ -140,7 +141,6 @@ def testCase_5
   @driver.switch_to.active_element.send_keys(@keyword)  #pass <keyword> into focused element
   glass_button = @driver.find_elements(:class, 'p-0-left-right')[3]
   puts "Magnifying glass button was clicked: #{glass_button.click==nil ? 'Passed':'Failed'}"
-  #exit(1)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 6.  Parse the 1st page with search results:
@@ -162,7 +162,6 @@ def testCase_6
     puts "No result with '#{@keyword}'! Try with another search keyword!\nFailed"
     testShutdown(1)
   end
-  #testShutdown(2)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 7.  Make sure at least one attribute (title, overview, skills, etc) of each item
@@ -181,7 +180,42 @@ def testCase_7
     puts "General data contains: #{freelancer.getGeneralData.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
     #p freelancer #DEBUG: stdout
   }
-  #testShutdown(2)  #DEBUG: exit BUT without quit WebDriver.
+end
+
+# Parsing Freelancer's profile
+# Return: parsed_values array['name','job_title','profile_overview','skills']
+def parseFreelancerProfile
+  #TODO:#BUG: undefined method `text' for nil:NilClass (NoMethodError) -- happens here (Freelancer Name:  Xavier P.)
+  #TODO: implement 'general data' setting
+  # #DEBUGing
+  # main = @driver.find_element(:class, 'cfe-main') #main container
+  # some = main.find_element(:class, 'media-body')
+  # some.each_with_index {|value, index| p "DEBUG: Value[#{index}] - #{value.text}"} #DEBUG
+  # some = some.length < 1 ? NO_DATA : some[0].text
+  # p some #DEBUG
+
+  fc_name = @driver.find_elements(:class, 'media-body')
+  if fc_name.length < 2
+    fc_name = NO_DATA
+  else
+    fc_name = fc_name[1].text
+  end
+
+  fc_job_title_elem = @driver.find_elements(:class, 'fe-job-title')
+  if fc_job_title_elem.length > 0 then
+    fc_job_title_elem = fc_job_title_elem[0]
+  else # It's a company:
+    fc_job_title_elem = @driver.find_elements(:tag_name, 'h3')[2]
+  end
+  fc_job_title = fc_job_title_elem.text
+
+  # !NOTE: Need more reliable element fetch, with multi class names!
+  fc_profile_overview = @driver.find_element(:class, 'text-pre-line').text
+
+  # Freelancer's Skills:
+  fc_skills = @driver.find_elements(:class, 'o-tag-skill').map {|skill| "'#{skill.text}'"}.join(',')
+
+  return fc_name, fc_job_title, fc_profile_overview, fc_skills
 end
 
 # Build Freelancer object and grab data for it. (Builder and Grabber)
@@ -205,6 +239,19 @@ def createFreelancerObj (value)
   return freelancer
 end
 
+# Build Freelancer profile object and grab data for it. (Builder and Grabber)
+# Return: Freelancer instance
+def createFreelancerProfileObj (parsed_values)
+  fc_profile = Freelancer.new
+  fc_profile.setFcName(parsed_values[0])
+  fc_profile.setFcTitle(parsed_values[1])
+  fc_profile.setFcOverview(parsed_values[2])
+  fc_profile.setFcSkills(parsed_values[3])
+  # p fc_profile  #DEBUG
+  # puts "Freelancer profile: #{fc_profile}"  #DEBUG
+  return fc_profile
+end
+
 # Test case: 8.  Click on random freelancer's title
 def testCase_8
   puts "\nTest case: 8.  Click on random freelancer's title"
@@ -214,7 +261,6 @@ def testCase_8
                    .find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
   # NOTE: If was clicked on section --- search result title will be displayed on the browser title.
   puts "Clicked on '#{@FcSearchResult[getRandomIndex].getFcName}' title: #{title_link.click==nil ? 'Passed':'Failed'}"
-  #testShutdown(1)  #DEBUG: gentle exit with WebDriver quit.
 end
 
 # Test case: 9.  Get into that freelancer's profile
@@ -226,45 +272,18 @@ def testCase_9
   #TODO: Investigate maybe we can check here by base_url value of each freelancer in search-results
   #Cover: 'Access to this page has been denied.'
   puts @driver.title.include?(fc_name) ? 'Passed' : testEndFailure
-  #testShutdown(2)  #DEBUG: exit BUT without quit WebDriver.
 end
 
 # Test case: 10. Check that each attribute value is equal to one of those stored in the structure created in #67
 def testCase_10
-  #TODO: move it to OOP approach.
   #TODO:#BUG Has problem with fetch data from companies profiles.
   #TODO:#BUG: Failed on - Freelancer Name:  MobiDev (keyword='javascript') --- it is company
   puts "\nTest case: 10. Check that each attribute value is equal to one of those stored in the structure created in TC6-7"
 
-  # Parsing DATA: Freelancer's profile
-  #TODO:#BUG: undefined method `text' for nil:NilClass (NoMethodError) -- happens here (Freelancer Name:  Xavier P.)
-  #TODO: implement 'general data' setting
-  fc_name = @driver.find_elements(:class, 'media-body')
-  if fc_name.length < 2
-    fc_name = "<no data>"
-  else
-    fc_name = fc_name[1].text
-  end
-  #p fc_name #DEBUG
-  fe_job_title_elem = @driver.find_elements(:class, 'fe-job-title')
-  if fe_job_title_elem.length > 0 then
-    fe_job_title_elem = fe_job_title_elem[0]
-  else  # It's a company:
-    fe_job_title_elem = @driver.find_elements(:tag_name, 'h3')[2]
-  end
-  fe_job_title = fe_job_title_elem.text
-  # !NOTE: Need more reliable element fetch, with multi class names!
-  fe_profile_overview = @driver.find_element(:class, 'text-pre-line').text
-  # Freelancer's Skills:
-  fe_skills_array = @driver.find_elements(:class, 'o-tag-skill').map{ |skill| "'#{skill.text}'" }.join(',')
-
+  #Parsing DATA: Freelancer's profile
   #Save parsed data:
   #TODO: implement 'general data' setting
-  @FcRandomProfile = Freelancer.new
-  @FcRandomProfile.setFcName(fc_name)
-  @FcRandomProfile.setFcTitle(fe_job_title)
-  @FcRandomProfile.setFcOverview(fe_profile_overview)
-  @FcRandomProfile.setFcSkills(fe_skills_array)
+  @FcRandomProfile = createFreelancerProfileObj(parseFreelancerProfile)
 
   #Standard Output:
   #TODO: implement 'general data' setting
@@ -285,9 +304,6 @@ def testCase_10
            "#{@FcRandomProfile.getFcOverview.downcase.include?(@FcSearchResult[getRandomIndex].getFcOverview.downcase) ? 'Passed' : 'Failed'}"
   puts "4) Freelancer's Skills:\t\t"+
            "#{@FcRandomProfile.getFcSkills.downcase.include?(@FcSearchResult[getRandomIndex].getFcSkills.downcase) ? 'Passed' : 'Failed'}"
-
-  #testShutdown(1)  #DEBUG: gentle exit with WebDriver quit .
-  #testShutdown(2)  #DEBUG: force exit without WebDriver quit .
 end
 
 # Test case: 11. Check whether at least one attribute contains <keyword>
@@ -329,8 +345,8 @@ end
 
 # Shutdown test with specified status, end quit browser. (gentle shutdown)
 ## status: 0 - success;
-### 1 - (some error) gentle exit with WebDriver quit. #DEBUG
-### 2 - force exit with driver interruption.  #DEBUG
+### 1 - gentle exit with WebDriver quit. #DEBUG
+### 2 - force exit with WebDriver interruption.  #DEBUG
 def testShutdown(status = 0)
   if status >= 2
     puts "\nWebDriver was interrupted!"
@@ -352,10 +368,11 @@ testCase_6  #Status: Full Implementation - Done!
 testCase_7  #Status: Full Implementation - Done!
 testCase_8  #Status: Full Implementation - Done!
 testCase_9  #Status: Full Implementation - Done!
-testCase_10 #Status: Rough Implementation - Done! Refactoring [60%]
+testCase_10 #Status: Rough Implementation - Done! Refactoring [80%]
 testCase_11 #Status: Rough Implementation - Done! Refactoring [80%]
 testEnd     #Status: Refactored
-#testShutdown(2)  #DEBUG - force exit with driver interruption.
+# testShutdown(1)  #DEBUG: gentle exit with WebDriver quit.
+# testShutdown(2)  #DEBUG: force exit with WebDriver interruption.
 
 
 #TODO: BUG-Cases:

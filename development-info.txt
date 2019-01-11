@@ -29,18 +29,11 @@ document.getElementsByClassName('p-0-left-right')[3]
 #-----------------------------------TC06-----------------------------------------
 # TC6: JS code -- get Freelancer's HTMLCollection:
 document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')
-#--------------------------------------------------------------------------------
-
-#-----------------------------------TC08-----------------------------------------
-# TC8: JS code -- get Freelancers' data (InnerText)
-document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0].innerText
-# something else
-document.getElementsByClassName('m-0-top-bottom ellipsis')
-#--------------------------------------------------------------------------------
 # Get Title of Freelancer (H4 first -- than link inside it )
 document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0]
 .getElementsByClassName('display-inline-block')[0]
 .getElementsByClassName('freelancer-tile-name')
+#--------------------------------------------------------------------------------
 
 #-----------------------------------TC07-----------------------------------------
 # Collection of found Freelancers:
@@ -68,7 +61,16 @@ document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-h
 .getElementsByClassName('o-tag-skill')
 #--------------------------------------------------------------------------------
 
+#-----------------------------------TC08-----------------------------------------
+# TC8: JS code -- get Freelancers' data (InnerText)
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[0].innerText
+# something else
+document.getElementsByClassName('m-0-top-bottom ellipsis')
+#--------------------------------------------------------------------------------
+
 #-----------------------------------TC10-----------------------------------------
+document.getElementsByClassName('cfe-main') //main container
+
 # TC10: Fetch data from profile:
 # <div class="media-body"> --- header of freelancer's profile
 
