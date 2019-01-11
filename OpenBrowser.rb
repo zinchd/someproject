@@ -154,7 +154,7 @@ def testCase_6
     #Populate FcSearchResult array with Freelancer's objects:
     fc_collection.each_with_index {|value, index|
       @FcSearchResult[index] = createFreelancerObj(value)
-      puts "#{index+1}.\telement - Saved" #DEBUG
+      # puts "#DEBUG: #{index+1}.\telement - Saved" #DEBUG
       #p @FcSearchResult[index] #DEBUG: STDOUT - whole data
     }
     puts "All #{@FcSearchResult.length} elements are saved.\nPassed"
@@ -185,36 +185,21 @@ end
 # Parsing Freelancer's profile
 # Return: parsed_values array['name','job_title','profile_overview','skills']
 def parseFreelancerProfile
-  #TODO:#BUG: undefined method `text' for nil:NilClass (NoMethodError) -- happens here (Freelancer Name:  Xavier P.)
   #TODO: implement 'general data' setting
-  # #DEBUGing
-  # main = @driver.find_element(:class, 'cfe-main') #main container
-  # some = main.find_element(:class, 'media-body')
-  # some.each_with_index {|value, index| p "DEBUG: Value[#{index}] - #{value.text}"} #DEBUG
-  # some = some.length < 1 ? NO_DATA : some[0].text
-  # p some #DEBUG
-
-  fc_name = @driver.find_elements(:class, 'media-body')
-  if fc_name.length < 2
-    fc_name = NO_DATA
-  else
-    fc_name = fc_name[1].text
-  end
-
-  fc_job_title_elem = @driver.find_elements(:class, 'fe-job-title')
-  if fc_job_title_elem.length > 0 then
-    fc_job_title_elem = fc_job_title_elem[0]
-  else # It's a company:
+  main = @driver.find_element(:class, 'cfe-main') #main container
+  fc_name = main.find_element(:class, 'media-body')
+  # p "#DEBUG:Name: #{p fc_name}"
+  fc_name = fc_name==nil ? NO_DATA : fc_name.text
+  fc_job_title_elem = main.find_element(:class, 'fe-job-title')
+  if fc_job_title_elem==nil then
+    #TODO: figure out BUGs with company data fetching
     fc_job_title_elem = @driver.find_elements(:tag_name, 'h3')[2]
+    #TODO:BUG: solve it
   end
-  fc_job_title = fc_job_title_elem.text
-
-  # !NOTE: Need more reliable element fetch, with multi class names!
-  fc_profile_overview = @driver.find_element(:class, 'text-pre-line').text
-
+  fc_job_title = fc_job_title_elem==nil ? NO_DATA : fc_job_title_elem.text
+  fc_profile_overview = main.find_element(:class, 'text-pre-line').text
   # Freelancer's Skills:
-  fc_skills = @driver.find_elements(:class, 'o-tag-skill').map {|skill| "'#{skill.text}'"}.join(',')
-
+  fc_skills = main.find_elements(:class, 'o-tag-skill').map {|skill| "'#{skill.text}'"}.join(',')
   return fc_name, fc_job_title, fc_profile_overview, fc_skills
 end
 
@@ -248,7 +233,7 @@ def createFreelancerProfileObj (parsed_values)
   fc_profile.setFcOverview(parsed_values[2])
   fc_profile.setFcSkills(parsed_values[3])
   # p fc_profile  #DEBUG
-  # puts "Freelancer profile: #{fc_profile}"  #DEBUG
+  # puts "#DEBUG: Freelancer profile: #{fc_profile}"  #DEBUG
   return fc_profile
 end
 
