@@ -84,7 +84,9 @@ document.getElementsByClassName("up-active-context up-active-context-title fe-jo
 document.getElementsByClassName("up-active-context-title fe-job-title")[0].innerText
 document.getElementsByClassName("fe-job-title")[0].innerText
 # description for companies:
-document.getElementsByClassName("m-sm-bottom ng-binding ng-scope")[1]
+document.getElementsByClassName('p-lg-left-right p-0-left-xs p-0-right-xs')[0].innerText    // company general data
+document.getElementsByClassName('p-lg-left-right')[0]    // company general data
+document.getElementsByClassName("m-sm-bottom ng-binding ng-scope")[1]   //company title
 document.getElementsByTagName('h3')[2]
 
 # <o-profile-overview> tag -- description
@@ -104,4 +106,12 @@ document.getElementsByTagName('up-skills-public-viewer')
 # Freelancer's Collection of Skills:
 document.getElementsByClassName('o-tag-skill ng-binding ng-scope')
 document.getElementsByClassName('o-tag-skill')[4].innerText
+
+# Parse "Relevant agency member" of a company:
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[8]
+.getElementsByClassName("row m-sm-top m-0-bottom")
+# Nix company
+document.getElementsByClassName('air-card-hover air-card-hover-escape air-card-hover_tile')[7]
+.getElementsByClassName("row m-sm-top m-0-bottom")[2]   # Relevant agency member
+.getElementsByClassName('m-xs-right')   # <a> tag of freelancer's name
 #--------------------------------------------------------------------------------

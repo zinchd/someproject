@@ -7,7 +7,7 @@ class Freelancer
   @fcTitle
   @fcOverview
   @fcSkills
-  @generalData
+  @fcGeneralData
 
   #SETTERS:
   def setFcName(fcName)
@@ -22,8 +22,8 @@ class Freelancer
   def setFcSkills(fcSkills)
     @fcSkills = fcSkills
   end
-  def setGeneralData(genData)
-    @generalData = genData
+  def setFcGeneralData(fcGenData)
+    @fcGeneralData = fcGenData
   end
 
   #GETTERS:
@@ -39,8 +39,8 @@ class Freelancer
   def getFcSkills
     return @fcSkills
   end
-  def getGeneralData
-    return @generalData
+  def getFcGeneralData
+    return @fcGeneralData
   end
 
   #TODO: Make general output method for Freelancer object. (like obj.toString())
@@ -65,8 +65,9 @@ def getRandomIndex
   #puts "FcSearchResult Length: #{@FcSearchResult.length}" #DEBUG
   if @FcSearchResult.length > 0 then
     if @randomIndex==nil  # should be initialized only once!
-      @randomIndex = rand(@FcSearchResult.length)
-      # @randomIndex = 4  #DEBUG: specific index
+      # @randomIndex = rand(@FcSearchResult .length)
+      @randomIndex = 8  #MobiDev  #DEBUG: specific index
+      # @randomIndex = 14 #Codemotion  #DEBUG: specific index
       #puts "DEBUG: RandomIndex singleton has been made! Value = #{@randomIndex}" #DEBUG
       # Set DEFAULT value for Random Freelancer profile object:
       #@FcRandomProfile = @FcSearchResult[@randomIndex]
@@ -177,30 +178,61 @@ def testCase_7
     puts "Title contains: #{freelancer.getFcTitle.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
     puts "Overview contains: #{freelancer.getFcOverview.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
     puts "Skills contain: #{freelancer.getFcSkills.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
-    puts "General data contains: #{freelancer.getGeneralData.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
+    puts "General data contains: #{freelancer.getFcGeneralData.downcase.include?(@keyword.downcase)?'Passed':'Failed'}"
     #p freelancer #DEBUG: stdout
   }
 end
 
 # Parsing Freelancer's profile
-# Return: parsed_values array['name','job_title','profile_overview','skills']
+# Return: parsed_values array['name','job_title','profile_overview','skills','fc_gen_data']
 def parseFreelancerProfile
   #TODO: implement 'general data' setting
-  main = @driver.find_element(:class, 'cfe-main') #main container
-  fc_name = main.find_element(:class, 'media-body')
-  # p "#DEBUG:Name: #{p fc_name}"
-  fc_name = fc_name==nil ? NO_DATA : fc_name.text
-  fc_job_title_elem = main.find_element(:class, 'fe-job-title')
-  if fc_job_title_elem==nil then
-    #TODO: figure out BUGs with company data fetching
-    fc_job_title_elem = @driver.find_elements(:tag_name, 'h3')[2]
-    #TODO:BUG: solve it
+  main = @driver.find_elements(:class, 'cfe-main') #main container
+  if main.length > 0 then
+    main = main[0]
+  else  # its company
+    main = @driver.find_element(:class, 'p-lg-left-right') #main container
   end
-  fc_job_title = fc_job_title_elem==nil ? NO_DATA : fc_job_title_elem.text
+  p main  #DEBUG
+
+  fc_name = main.find_element(:class, 'media-body').find_element(:tag_name, 'h2')
+  # H2 inside: actual Name
+  p fc_name
+  fc_name = fc_name==nil ? NO_DATA : fc_name.text
+  p "#DEBUG:Name: #{fc_name}" #DEBUG
+
+  fc_job_title_elem = main.find_elements(:class, 'fe-job-title')
+  if fc_job_title_elem.length > 0 then
+    fc_job_title_elem = fc_job_title_elem[0]
+  else  # its company
+    fc_job_title_elem = main.find_elements(:tag_name, 'h3')
+  end
+  p "#DEBUG:Title: #{fc_job_title_elem}"  #DEBUG
+  p "#DEBUG:Title[0]: #{fc_job_title_elem[0].text}" #DEBUG -- empty element
+  p "#DEBUG:Title[1]: #{fc_job_title_elem[1].text}" #DEBUG -- actual title
+
+  # if fc_job_title_elem==nil then
+  #   #TODO: figure out BUGs with company data fetching
+  #   fc_job_title_elem = @driver.find_elements(:tag_name, 'h3')[2]
+  #   #TODO:BUG: solve it
+  # end
+  # fc_job_title = fc_job_title_elem==nil ? NO_DATA : fc_job_title_elem.text
+  fc_job_title = fc_job_title_elem[1].text
+  p "#DEBUG:Title: #{fc_job_title}"
+  # exit(1)
+
+  # Overview:
   fc_profile_overview = main.find_element(:class, 'text-pre-line').text
+  p "#DEBUG:Overview: #{fc_profile_overview}"  #DEBUG
   # Freelancer's Skills:
   fc_skills = main.find_elements(:class, 'o-tag-skill').map {|skill| "'#{skill.text}'"}.join(',')
-  return fc_name, fc_job_title, fc_profile_overview, fc_skills
+  p "#DEBUG:Freelancer's Skills: #{fc_skills}"  #DEBUG
+  # General Data:
+  fc_gen_data = main.text
+  p "#DEBUG:General Data: #{fc_gen_data}"  #DEBUG
+
+  #!NOTE: Not flexible approach. Strongly Fixed order! (use hash map OR )
+  return fc_name, fc_job_title, fc_profile_overview, fc_skills, fc_gen_data
 end
 
 # Build Freelancer object and grab data for it. (Builder and Grabber)
@@ -220,7 +252,7 @@ def createFreelancerObj (value)
   freelancer.setFcSkills(
       value.find_elements(:class, 'o-tag-skill').map{ |skillEl| "'#{skillEl.text}'" }.join(","))
 
-  freelancer.setGeneralData(value.text)
+  freelancer.setFcGeneralData(value.text)
   return freelancer
 end
 
@@ -232,8 +264,9 @@ def createFreelancerProfileObj (parsed_values)
   fc_profile.setFcTitle(parsed_values[1])
   fc_profile.setFcOverview(parsed_values[2])
   fc_profile.setFcSkills(parsed_values[3])
+  fc_profile.setFcGeneralData((parsed_values[4]))
   # p fc_profile  #DEBUG
-  # puts "#DEBUG: Freelancer profile: #{fc_profile}"  #DEBUG
+  puts "#DEBUG: Freelancer profile: #{fc_profile}"  #DEBUG
   return fc_profile
 end
 
@@ -265,21 +298,18 @@ def testCase_10
   #TODO:#BUG: Failed on - Freelancer Name:  MobiDev (keyword='javascript') --- it is company
   puts "\nTest case: 10. Check that each attribute value is equal to one of those stored in the structure created in TC6-7"
 
-  #Parsing DATA: Freelancer's profile
-  #Save parsed data:
-  #TODO: implement 'general data' setting
+  #Freelancer's profile: Parsing DATA & Create object
   @FcRandomProfile = createFreelancerProfileObj(parseFreelancerProfile)
 
   #Standard Output:
-  #TODO: implement 'general data' setting
   puts "1) Freelancer's Name:\n#{@FcRandomProfile.getFcName}"
   puts "2) Freelancer's Job Title:\n#{@FcRandomProfile.getFcTitle}"
   #TODO: Button 'more' hides a lot of info!
   puts "3) Freelancer's Profile Overview:\n#{@FcRandomProfile.getFcOverview}"
   puts "4) Freelancer's Skills:\n#{@FcRandomProfile.getFcSkills}"
+  # puts "5)#DEBUG: Freelancer's General Data:\n#{@FcRandomProfile.getFcGeneralData}"
 
   #Checking:
-  #TODO: implement 'general data' setting
   puts "\nChecking of equality between RandomFreelancer_Profile and RandomFreelancer_FromSearchResult:"
   puts "1) Freelancer's Name:\t\t"+
            "#{@FcRandomProfile.getFcName.downcase.include?(@FcSearchResult[getRandomIndex].getFcName.downcase) ? 'Passed':'Failed'}"
@@ -289,6 +319,8 @@ def testCase_10
            "#{@FcRandomProfile.getFcOverview.downcase.include?(@FcSearchResult[getRandomIndex].getFcOverview.downcase) ? 'Passed' : 'Failed'}"
   puts "4) Freelancer's Skills:\t\t"+
            "#{@FcRandomProfile.getFcSkills.downcase.include?(@FcSearchResult[getRandomIndex].getFcSkills.downcase) ? 'Passed' : 'Failed'}"
+  puts "5)#DEBUG: Freelancer's General Data:\t\t"+
+           "#{@FcRandomProfile.getFcGeneralData.downcase.include?(@FcSearchResult[getRandomIndex].getFcGeneralData.downcase) ? 'Passed' : 'Failed'}"
 end
 
 # Test case: 11. Check whether at least one attribute contains <keyword>
@@ -312,6 +344,9 @@ def testCase_11
   if @FcRandomProfile.getFcSkills.downcase.include?(@keyword.downcase)
     puts "Case-4. '#{@keyword}' contains in Freelancer's Skills:\n#{@FcRandomProfile.getFcSkills}"
     boolean_tc11 = true
+  end
+  if @FcRandomProfile.getFcGeneralData.downcase.include?(@keyword.downcase)
+    puts "DEBUG:Case. '#{@keyword}' contains in Freelancer's General Data:"
   end
   puts boolean_tc11 ? 'Passed' : 'Failed'
 end
