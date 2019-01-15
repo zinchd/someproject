@@ -270,15 +270,29 @@ def createFreelancerProfileObj (parsed_values)
   return fc_profile
 end
 
+RELEVANT_MEMBER = 'Relevant agency member'
+# Check for 'Relevant agency member' if it's some company
+def isRelevantMember? (element)
+  #puts "#DEBUG:isRelevantMember?: #{element.find_elements(:class, 'm-0-bottom')[2].text}"  #DEBUG
+  return element.find_elements(:class, 'm-0-bottom')[2].text.include?(RELEVANT_MEMBER)
+end
 # Test case: 8.  Click on random freelancer's title
 def testCase_8
   puts "\nTest case: 8.  Click on random freelancer's title"
   # NOTE: If was clicked on Freelancers' TITLE - his name appears in browser title
   puts "RandomIndex: #{getRandomIndex+1}"  #DEBUG:
-  title_link = @driver.find_elements(:class, 'air-card-hover')[getRandomIndex]
-                   .find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
+  #TODO: parse 'Relevant agency member'
+  title_link = @driver.find_elements(:class, 'air-card-hover')[getRandomIndex]  #find random element
+  if isRelevantMember?(title_link) then # is company
+    # 'Relevant agency member' Name link:
+    title_link = title_link.find_elements(:class, 'm-0-bottom')[2].find_element(:class, 'm-xs-right')
+    puts "Clicked on '#{title_link.text}' company member:"
+  else
+    title_link = title_link.find_element(:class, 'display-inline-block').find_element(:class, 'freelancer-tile-name')
+    puts "Clicked on '#{@FcSearchResult[getRandomIndex].getFcName}' title:"
+  end
   # NOTE: If was clicked on section --- search result title will be displayed on the browser title.
-  puts "Clicked on '#{@FcSearchResult[getRandomIndex].getFcName}' title: #{title_link.click==nil ? 'Passed':'Failed'}"
+  puts title_link.click==nil ? 'Passed':'Failed'
 end
 
 # Test case: 9.  Get into that freelancer's profile
@@ -389,10 +403,10 @@ testCase_7  #Status: Full Implementation - Done!
 testCase_8  #Status: Full Implementation - Done!
 testCase_9  #Status: Full Implementation - Done!
 testCase_10 #Status: Rough Implementation - Done! Refactoring [80%]
+testShutdown(2)  #DEBUG: force exit with WebDriver interruption.
 testCase_11 #Status: Rough Implementation - Done! Refactoring [80%]
 testEnd     #Status: Refactored
 # testShutdown(1)  #DEBUG: gentle exit with WebDriver quit.
-# testShutdown(2)  #DEBUG: force exit with WebDriver interruption.
 
 
 #TODO: BUG-Cases:
